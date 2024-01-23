@@ -1,30 +1,15 @@
 FROM gitpod/workspace-base
 
-USER root
+# Install dependencies
+RUN sudo apt-get install -y build-essential curl libffi-dev libffi7 libgmp-dev libgmp10 libncurses-dev libncurses5 libtinfo5
 
-# Install Nix
-RUN addgroup --system nixbld \
-  && adduser gitpod nixbld \
-  && for i in $(seq 1 30); do useradd -ms /bin/bash nixbld$i &&  adduser nixbld$i nixbld; done \
-  && mkdir -m 0755 /nix && chown gitpod /nix \
-  && mkdir -p /etc/nix && echo 'sandbox = false' > /etc/nix/nix.conf
+# ghcup is a replacement for the haskell platform. It manages the development env easily.
+# We use the official instalation script
+RUN sudo curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 
-CMD /bin/bash -l
-USER gitpod
-ENV USER gitpod
-WORKDIR /home/gitpod
+# Add ghcup to path
+ENV PATH=${PATH}:${HOME}/.ghcup/bin
 
-RUN touch .bash_profile \
- && curl -L https://nixos.org/nix/install | sh
-
-RUN echo '. /home/gitpod/.nix-profile/etc/profile.d/nix.sh' >> /home/gitpod/.bashrc
-RUN mkdir -p /home/gitpod/.config/nixpkgs && echo '{ allowUnfree = true; }' >> /home/gitpod/.config/nixpkgs/config.nix
-
-ENV PATH=/home/gitpod/.nix-profile/bin:$PATH
-
-# Install git
-RUN nix-env -i git git-lfs
-
-# Install direnv
-RUN nix-env -i direnv ghc cabal-install haskell-language-server \
-  && direnv hook bash >> /home/gitpod/.bashrc
+# Set up the environment. This will install the default versions of every tool.
+RUN ghcup install ghc
+RUN ghcup install hls
