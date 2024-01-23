@@ -17,4 +17,4 @@ RUN ghcup install cabal
 
 # Generate the right cabal file. Using cabal init after ghc installation ensures that the right version of base is used
 # Otherwise, the template would become deprecated as long as ghcup decides to pick up a different version of ghc.
-RUN cabal init
+# RUN cabal init
